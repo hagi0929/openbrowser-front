@@ -3,6 +3,7 @@ import random
 import json
 from PIL import Image
 import numpy as np
+from openbrowser import Client
 
 # Initialize Client
 client = Client("http://localhost:3000")
