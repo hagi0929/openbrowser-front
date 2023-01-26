@@ -17,7 +17,6 @@
 <script src="script.js">
 </script>
 <input type="file" id="file-upload-pillow">
-<button id="submit-button" type="submit" pys-onClick="submit">Upload</button>
 
 <py-script>
         import asyncio
@@ -33,7 +32,7 @@
         import numpy as np
         async def main(e):
             async def _upload_change_and_show():
-                print("uploaded")
+                print("uploading")
                 #Get the first file from upload
                 file_list = e.target.files
                 first_item = file_list.item(0)
@@ -67,6 +66,7 @@
                 print("dig")
                 print(public_key)
                 print(private_key)
+                print(await client.distribute_block_to_rpc(public_key, enc_rgb_array, rpc_array))
 
             asyncio.ensure_future(_upload_change_and_show())
         upload_file = create_proxy(main)

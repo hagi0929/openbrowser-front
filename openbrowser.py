@@ -3,7 +3,8 @@ from PIL import Image
 import requests
 from hashlib import sha256
 import math
-
+import json
+from request import request
 
 class Encryption:
     def __init__(self):
@@ -172,7 +173,7 @@ class Client:
                 off_rpc_array.append(uri)
         return off_rpc_array
 
-    def distribute_block_to_rpc(
+    async def distribute_block_to_rpc(
             self,
             public_key: str,
             enc_rgb_array: list,
@@ -190,12 +191,13 @@ class Client:
         # post data
         for i in range(len(rpc_array)):
             json_data = {public_key: (enc_rgb_array[i]).tolist()}
+            headers = {"Content-type": "application/json", "Access-Control-Allow-Origin": "*"}
+            data = await request(f"{rpc_array[i]}/data", body=json_data, method="POST", headers=headers)
 
-            r = requests.post(f"{rpc_array[i]}/data", json=json_data)
 
         return True
 
-    def retrieve_block_from_rpc(
+    async def retrieve_block_from_rpc(
             self,
             public_key: str,
             private_key: dict,
@@ -203,16 +205,24 @@ class Client:
             file_name: str
     ):
         # decompose private key
+        print("rpc")
+        print(public_key)
+        print(type(private_key))
+        # decompose private key
         dim = private_key["dim"]
         action, condition = private_key["enc"]
         rng = private_key["rng"]
         rpc_array = private_key["rpc"]
-
+        print(rpc_array)
         # request data from rpc array
         encrypted_rgb_array = []
         for rpc in rpc_array:
-            data = requests.post(f"{rpc}/retrieve", json={"pubkey": public_key}).json()["data"]
-            encrypted_rgb_array = encrypted_rgb_array + data
+            print("rpc")
+            headers = {"Content-type": "application/json", "Access-Control-Allow-Origin": "*"}
+            body = json.dumps({"pubkey": public_key})
+            data = await request(f"{rpc}/retrieve",  body=body, method="POST", headers=headers)
+            print(data)
+            encrypted_rgb_array = encrypted_rgb_array + await data.json()["data"]
 
         encrypted_rgb_array = np.asarray(encrypted_rgb_array).reshape(1, dim[0] * dim[1], 3)[0]
         # decrypt the rgb array

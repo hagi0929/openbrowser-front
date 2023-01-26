@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Download</title>
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <py-config>
@@ -15,11 +15,12 @@
 </head>
 <body>
 <form>
-  <label for="public-key-input">public key:</label>
+    <label for="public-key-input">public key:</label>
     <input type="text" id="public-key-input"/><br>
-  <label for="private-key-input">private key:</label>
+    <label for="private-key-input">private key:</label>
     <input type="text" id="private-key-input"/><br>
-    <button id="submit-button" type="submit" pys-onClick="submit">Download</button>
+    <button id="submit-button" type="button">Download</button>
+
 </form>
 
 <py-script>
@@ -34,17 +35,22 @@
         from js import document, console, Uint8Array, window, File
         import io
         import numpy as np
-        def submit():
+
+        def submit(e):
+            print("sd")
             public_key = Element('public-key-input').element.value
-            private_key = Element('private-key-input').element.value
+            private_key = Element('private-key-input').element.value.replace("'",'"')
             print(public_key)
             print(private_key)
+            public_key = "7c625f6be72dbfa24248eab056464aca6e645644e28a36507413c8201eee6661"
+            private_key = {'dim': (1387, 1125), 'enc': (['a1', 's1'], ['M2', 'P2', 'M5']), 'rng': [780188, 780187], 'rpc': ['http://localhost:38204', 'http://localhost:8080']}
 
+            print("PK")
             # Retrieve data from RPC
             client = Client("http://localhost:3000")
-
             async def _upload_change_and_show():
-                rgb_array = client.retrieve_block_from_rpc(
+                print("downloading...")
+                rgb_array = await client.retrieve_block_from_rpc(
                     public_key,
                     private_key,
                     "retrieve_img",
@@ -53,6 +59,9 @@
                 print(rgb_array)
 
             asyncio.ensure_future(_upload_change_and_show())
+        download_file = create_proxy(submit)
+        document.getElementById("submit-button").addEventListener("click", download_file)
+
 
 </py-script>
 </body>
