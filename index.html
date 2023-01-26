@@ -42,6 +42,7 @@
                 bytes_list = bytearray(array_buf)
                 my_bytes = io.BytesIO(bytes_list)
                 img_PIL = Image.open(my_bytes)
+                print(img_PIL)
                 #Create PIL image from np array
 
                 client = Client("http://localhost:3000")

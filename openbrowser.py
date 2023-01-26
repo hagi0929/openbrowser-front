@@ -6,6 +6,7 @@ import math
 import json
 from request import request
 
+
 class Encryption:
     def __init__(self):
         pass
@@ -69,39 +70,39 @@ class Encryption:
                     an = int(j[1:])
                     if j[0] == "p":
                         rgb_array = [(rgb_array[rgb_index] ** (1 / an)).astype(int) if rgb_index % cn == 0 else (
-                        rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
                     if j[0] == "a":
                         rgb_array = [(rgb_array[rgb_index] - an).astype(int) if rgb_index % cn == 0 else (
-                        rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
                     if j[0] == "s":
                         rgb_array = [(rgb_array[rgb_index] + an).astype(int) if rgb_index % cn == 0 else (
-                        rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
                     if j[0] == "m":
                         rgb_array = [(rgb_array[rgb_index] / an).astype(int) if rgb_index % cn == 0 else (
-                        rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
             if i[0] == "P":
                 for j in reversed(action):
                     an = int(j[1:])
                     if j[0] == "p":
                         rgb_array = [
                             (rgb_array[rgb_index] ** (1 / an)).astype(int) if self.power_check(rgb_index, cn) else (
-                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                                rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
                     if j[0] == "a":
                         rgb_array = [(rgb_array[rgb_index] - an).astype(int) if self.power_check(rgb_index, cn) else (
-                        rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
                     if j[0] == "s":
                         rgb_array = [(rgb_array[rgb_index] + an).astype(int) if self.power_check(rgb_index, cn) else (
-                        rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
                     if j[0] == "m":
                         rgb_array = [(rgb_array[rgb_index] / an).astype(int) if self.power_check(rgb_index, cn) else (
-                        rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
+                            rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
         return np.array(rgb_array, dtype=np.int8)
+
 
 class Client:
     def __init__(self, connection: str):
         self.connection = connection
         self.encryption = Encryption()
-
 
     def process_img(
             self,
@@ -182,18 +183,18 @@ class Client:
         # check length of rgb array chunk and rpc array
         assert len(enc_rgb_array) == len(
             rpc_array), f"Number of chunk and RPC is different. \nChunk: {len(enc_rgb_array)}\nRPC: {len(rpc_array)}"
-
+        print("fuck")
         # ping check
-        off_rpc_array = self.ping_rpc(rpc_array)
-
-        assert len(off_rpc_array) == 0, f"Following RPCs are unresponsive \n{off_rpc_array}"
+        # off_rpc_array = self.ping_rpc(rpc_array)
+        #
+        # assert len(off_rpc_array) == 0, f"Following RPCs are unresponsive \n{off_rpc_array}"
 
         # post data
         for i in range(len(rpc_array)):
-            json_data = {public_key: (enc_rgb_array[i]).tolist()}
-            headers = {"Content-type": "application/json", "Access-Control-Allow-Origin": "*"}
+            print(i)
+            json_data = json.dumps({public_key: (enc_rgb_array[i]).tolist()})
+            headers = {"Content-type": "application/json"}
             data = await request(f"{rpc_array[i]}/data", body=json_data, method="POST", headers=headers)
-
 
         return True
 
@@ -213,17 +214,18 @@ class Client:
         action, condition = private_key["enc"]
         rng = private_key["rng"]
         rpc_array = private_key["rpc"]
-        print(rpc_array)
         # request data from rpc array
         encrypted_rgb_array = []
+        print(rpc_array)
         for rpc in rpc_array:
-            print("rpc")
+            print(rpc)
             headers = {"Content-type": "application/json", "Access-Control-Allow-Origin": "*"}
             body = json.dumps({"pubkey": public_key})
-            data = await request(f"{rpc}/retrieve",  body=body, method="POST", headers=headers)
+            data = await request(f"{rpc}/retrieve", body=body, method="POST", headers=headers)
             print(data)
-            encrypted_rgb_array = encrypted_rgb_array + await data.json()["data"]
-
+            F = await data.json()
+            encrypted_rgb_array = encrypted_rgb_array + F["data"]
+        print("sht")
         encrypted_rgb_array = np.asarray(encrypted_rgb_array).reshape(1, dim[0] * dim[1], 3)[0]
         # decrypt the rgb array
         decrypted_rgb_array = self.encryption.decrypt_rgb_array(
@@ -232,8 +234,4 @@ class Client:
         # reshape the rgb array
         rgb_array = np.asarray(decrypted_rgb_array).reshape(dim[0], dim[1], 3).astype(np.uint8)
 
-        img = Image.fromarray(rgb_array)
-
-        img.save(f"{retrieve_dir}/{file_name}")
-
-        return rgb_array
+        return Image.fromarray(rgb_array)

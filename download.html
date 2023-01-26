@@ -20,7 +20,9 @@
     <label for="private-key-input">private key:</label>
     <input type="text" id="private-key-input"/><br>
     <button id="submit-button" type="button">Download</button>
+    <div id="display-img">
 
+    </div>
 </form>
 
 <py-script>
@@ -56,7 +58,21 @@
                     "retrieve_img",
                     "result.jpeg"
                 )
+                print("retrieved image")
+                rgb_array.show()
                 print(rgb_array)
+                my_stream = io.BytesIO()
+                rgb_array.save(my_stream, format="JPEG")
+                image_file = File.new([Uint8Array.new(my_stream.getvalue())], "new_image_file.png", {type: "image/png"})
+
+                #Create new tag and insert into page
+                new_image = document.createElement('img')
+                new_image.src = window.URL.createObjectURL(image_file)
+                document.getElementById("display-img").appendChild(new_image)
+
+
+
+
 
             asyncio.ensure_future(_upload_change_and_show())
         download_file = create_proxy(submit)
