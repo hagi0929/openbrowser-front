@@ -5,49 +5,99 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
-    <script defer src="https://pyscript.net/latest/pyscript.js">
-    </script>
-    <script>
-        const fileSelector = document.getElementById('file-selector');
-        fileSelector.addEventListener('change', (event) => {
-            const fileList = event.target.files;
-            console.log(fileList);
-        });
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <py-config>
+        packages = ["numpy", "Pillow", "requests", "asyncio"]
+        [[fetch]]
+        files = ["/request.py", "./openbrowser.py"]
+    </py-config>
 
-    </script>
 </head>
 <body>
-<div>
-    <input type="file" id="file-selector" accept=".jpg, .jpeg, .png">
+<script src="script.js">
+</script>
+<label for="Upload a PNG image">
 
-</div>
-<py-config>
-    packages = ["Pillow", "numpy", "requests"]
+</label>
+<input type="file" id="file-upload-pillow">
 
-    [[fetch]]
-    files = ["./openbrowser.py"]
-
-</py-config>
-
-<py-button id="thebuttonid" label="run Python" type="button" pys-onClick="runPython"></py-button>
-<div id="output_div" style="margin-top: 10px;margin-bottom: 10px;"></div>
 <py-script>
-    import requests
-    import random
-    import json
-    from PIL import Image
-    import numpy as np
-    from openbrowser import Client
-    from pyodide import JsProxy
+        import asyncio
+        from request import request
+        from openbrowser import Client, Encryption
+        import requests
+        from pyodide import create_proxy
+        import random
+        import json
+        from PIL import Image
+        from js import document, console, Uint8Array, window, File
+        import io
+        import numpy as np
+        async def main(e):
+            async def _upload_change_and_show():
+                print("43")
+                #Get the first file from upload
+                file_list = e.target.files
+                first_item = file_list.item(0)
+                array_buf = Uint8Array.new(await first_item.arrayBuffer())
 
-    # Initialize Client
-    def main(proxy: JsProxy):
-        client = Client("http://localhost:3000")
+                #BytesIO wants a bytes-like object, so convert to bytearray first
+                bytes_list = bytearray(array_buf)
+                my_bytes = io.BytesIO(bytes_list)
+                img_PIL = Image.open(my_bytes)
+                #Create PIL image from np array
 
-        # Fetch RPC from main endpoint
-        rpc_array = client.get_available_rpcs()
-        output = Element("output_div")
-        output.write(str(rpc_array))
+                client = Client("http://localhost:3000")
+                headers = {"Content-type": "application/json"}
+                print("sex")
+
+                baseurl = "http://localhost:3000"
+                rpc_array_sex = await request(f"{baseurl}/rpc", method="GET", headers=headers)
+                rpc_array = await rpc_array_sex.json()
+                print(rpc_array)
+            # Ping RPC
+            # off_rpc_array = client.ping_rpc(rpc_array)
+            # assert len(off_rpc_array) == 0, "Certain RPCs are unavailable"
+
+            # Set constant
+                condition = ["M2", "P2", "M5"]
+                action = ["a1", "s1"]
+                # Process Image
+                enc_rgb_array, private_key, public_key = client.process_img(
+                    action, condition, img_PIL, rpc_array
+                )
+
+                print("dig")
+                print(public_key)
+                with open("private_key.json", "w") as f:
+                    json.dump(private_key, f)
+
+                # Post data to RPC
+                result = client.distribute_block_to_rpc(
+                    public_key,
+                    enc_rgb_array,
+                    rpc_array
+                )
+                print(public_key)
+                print(enc_rgb_array)
+                print(rpc_array)
+                # Retrieve data from RPC
+                rgb_array = client.retrieve_block_from_rpc(
+                    public_key,
+                    private_key,
+                    "retrieve_img",
+                    "result.jpeg"
+                )
+            asyncio.ensure_future(_upload_change_and_show())
+        upload_file = create_proxy(main)
+        document.getElementById("file-upload-pillow").addEventListener("change", upload_file)
+
+
+
+
+
+
+
 
 </py-script>
 </body>

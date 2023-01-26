@@ -96,44 +96,26 @@ class Encryption:
                         rgb_array[rgb_index]).astype(int) for rgb_index in range(len(rgb_array))]
         return np.array(rgb_array, dtype=np.int8)
 
-
 class Client:
     def __init__(self, connection: str):
         self.connection = connection
         self.encryption = Encryption()
 
-    def get_available_rpcs(self):
-        """
-        Get RPCs that are online
-        
-        Example:
-            >>> rpc_array = client.get_available_rpcs()
-            [
-                "https://localhost:3000",
-                "https://localhost:5000"
-            ]
-        
-        Returns:
-            Type: list
-            RPCs in registry
-        """
-        rpc_array = requests.get(f"{self.connection}/rpc").json()
-        return rpc_array
 
     def process_img(
             self,
             action: list,
             condition: list,
-            img_path: str,
+            img,
             rpc_array: list
     ):
         """ 
-        Process image prior to RPC request
+        Process img prior to RPC request
         
         Args:
             action: action key for encryption
             condition: condition key for encryption
-            img_path: path to image file
+            img_path: path to img file
             rpc_array: list of selected RPCs to transfer data
             
         Example: 
@@ -144,8 +126,10 @@ class Client:
                 rpc_array=["http://localhost:3000"]
             )
         """
-        # open image and get rgb array
-        img = Image.open(img_path)
+        # open img and get rgb array
+        print("sex")
+
+        print("hi")
         raw_rgb_array = np.array(img, dtype=np.int8)
         shape = raw_rgb_array.shape
 
