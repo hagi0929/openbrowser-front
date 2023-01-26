@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Upload</title>
     <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
     <script defer src="https://pyscript.net/latest/pyscript.js"></script>
     <py-config>
@@ -16,10 +16,8 @@
 <body>
 <script src="script.js">
 </script>
-<label for="Upload a PNG image">
-
-</label>
 <input type="file" id="file-upload-pillow">
+<button id="submit-button" type="submit" pys-onClick="submit">Upload</button>
 
 <py-script>
         import asyncio
@@ -35,7 +33,7 @@
         import numpy as np
         async def main(e):
             async def _upload_change_and_show():
-                print("43")
+                print("uploaded")
                 #Get the first file from upload
                 file_list = e.target.files
                 first_item = file_list.item(0)
@@ -49,17 +47,16 @@
 
                 client = Client("http://localhost:3000")
                 headers = {"Content-type": "application/json"}
-                print("sex")
 
                 baseurl = "http://localhost:3000"
                 rpc_array_sex = await request(f"{baseurl}/rpc", method="GET", headers=headers)
                 rpc_array = await rpc_array_sex.json()
                 print(rpc_array)
-            # Ping RPC
-            # off_rpc_array = client.ping_rpc(rpc_array)
-            # assert len(off_rpc_array) == 0, "Certain RPCs are unavailable"
+                # Ping RPC
+                # off_rpc_array = client.ping_rpc(rpc_array)
+                # assert len(off_rpc_array) == 0, "Certain RPCs are unavailable"
 
-            # Set constant
+                # Set constant
                 condition = ["M2", "P2", "M5"]
                 action = ["a1", "s1"]
                 # Process Image
@@ -69,32 +66,11 @@
 
                 print("dig")
                 print(public_key)
-                with open("private_key.json", "w") as f:
-                    json.dump(private_key, f)
+                print(private_key)
 
-                # Post data to RPC
-                result = client.distribute_block_to_rpc(
-                    public_key,
-                    enc_rgb_array,
-                    rpc_array
-                )
-                print(public_key)
-                print(enc_rgb_array)
-                print(rpc_array)
-                # Retrieve data from RPC
-                rgb_array = client.retrieve_block_from_rpc(
-                    public_key,
-                    private_key,
-                    "retrieve_img",
-                    "result.jpeg"
-                )
             asyncio.ensure_future(_upload_change_and_show())
         upload_file = create_proxy(main)
         document.getElementById("file-upload-pillow").addEventListener("change", upload_file)
-
-
-
-
 
 
 

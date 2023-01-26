@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css"/>
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+    <py-config>
+        packages = ["numpy", "Pillow", "requests", "asyncio"]
+        [[fetch]]
+        files = ["/request.py", "./openbrowser.py"]
+    </py-config>
+
+</head>
+<body>
+<form>
+  <label for="public-key-input">public key:</label>
+    <input type="text" id="public-key-input"/><br>
+  <label for="private-key-input">private key:</label>
+    <input type="text" id="private-key-input"/><br>
+    <button id="submit-button" type="submit" pys-onClick="submit">Download</button>
+</form>
+
+<py-script>
+        import asyncio
+        from request import request
+        from openbrowser import Client, Encryption
+        import requests
+        from pyodide import create_proxy
+        import random
+        import json
+        from PIL import Image
+        from js import document, console, Uint8Array, window, File
+        import io
+        import numpy as np
+        def submit():
+            public_key = Element('public-key-input').element.value
+            private_key = Element('private-key-input').element.value
+            print(public_key)
+            print(private_key)
+
+            # Retrieve data from RPC
+            client = Client("http://localhost:3000")
+
+            async def _upload_change_and_show():
+                rgb_array = client.retrieve_block_from_rpc(
+                    public_key,
+                    private_key,
+                    "retrieve_img",
+                    "result.jpeg"
+                )
+                print(rgb_array)
+
+            asyncio.ensure_future(_upload_change_and_show())
+
+</py-script>
+</body>
+</html>
